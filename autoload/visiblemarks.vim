@@ -274,14 +274,24 @@ function! s:del_mark(chr) abort "{{{
 endfunction
 "}}}
 function! visiblemarks#ljump(...) "{{{
-  let chr = a:0 ? a:1 : nr2char(getchar())
-  exe "norm! '". chr
-  call visiblemarks#refresh()
+  call s:jump("'", a:0 ? a:1 : nr2char(getchar()))
 endfunction
 "}}}
 function! visiblemarks#cjump(...) "{{{
-  let chr = a:0 ? a:1 : nr2char(getchar())
-  exe 'norm! `'. chr
+  call s:jump("`", a:0 ? a:1 : nr2char(getchar()))
+endfunction
+"}}}
+function! s:jump(jmpkey, mark) "{{{
+  if a:mark !~# '[[:alnum:][\]<>''`"^.(){}]'
+    return
+  end
+  try
+    exe "norm! ". a:jmpkey. a:mark
+  catch /E19:/
+    echoh ErrorMsg
+    echom v:exception
+    echoh NONE
+  endtry
   call visiblemarks#refresh()
 endfunction
 "}}}
