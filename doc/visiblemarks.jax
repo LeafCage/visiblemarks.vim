@@ -1,0 +1,260 @@
+*visiblemarks.txt*	マーク|mark-motions|を見えるようにハイライトする。
+
+Author  : LeafCage <leafcage+vim @ gmail.com>
+License : MIT license  {{{
+    Permission is hereby granted, free of charge, to any person obtaining
+    a copy of this software and associated documentation files (the
+    "Software"), to deal in the Software without restriction, including
+    without limitation the rights to use, copy, modify, merge, publish,
+    distribute, sublicense, and/or sell copies of the Software, and to
+    permit persons to whom the Software is furnished to do so, subject to
+    the following conditions:
+    The above copyright notice and this permission notice shall be included
+    in all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+    OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+    IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+    CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+    TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+}}}
+
+==============================================================================
+目次						*visiblemarks-contents*
+
+概要				|visiblemarks-introduction|
+設定例				|visiblemarks-examples|
+インターフェイス		|visiblemarks-interface|
+  変数				  |visiblemarks-variables|
+  ハイライトグループ		  |visiblemarks-highlight-groups|
+  コマンド			  |visiblemarks-commands|
+  キーマッピング		  |visiblemarks-key-mappings|
+  関数				  |visiblemarks-functions|
+
+
+==============================================================================
+概要						*visiblemarks-introduction*
+
+*visiblemarks* はマーク|mark-motions|を見えるようにハイライトするプラグインで
+す。それだけでなくマークのセットや削除を使いやすくする仕組みも提供します。
+
+最新版:
+https://github.com/LeafCage/visiblemarks.vim
+
+ご意見・要望は GitHub の Issues まで。
+
+
+==============================================================================
+設定例						*visiblemarks-examples*
+
+	"visiblemarks" である。"visualmarks" ではない!
+>
+	let g:visiblemarks_hl_prejump = 1
+
+	nmap m <Plug>(visiblemarks-m)
+	nmap m, <Plug>(visiblemarks-m,)
+	nmap m. <Plug>(visiblemarks-m.)
+	"nnoremap <silent> m; :<C-u>call visiblemarks#setmark("`")<CR>
+	nmap dm <Plug>(visiblemarks-dm)
+	nmap m<C-g> <Plug>(visiblemarks-info-buf)
+	map gm <Plug>(visiblemarks-`)
+	map M <Plug>(visiblemarks-`)
+	map MM <Plug>(visiblemarks-``)
+
+	hi VisibleMarksCapital   gui=bold cterm=bold guibg=Green ctermbg=Green
+<
+
+==============================================================================
+インターフェイス				*visiblemarks-interface*
+
+------------------------------------------------------------------------------
+変数						*visiblemarks-variables*
+
+g:visiblemarks_hl_prejump			*g:visiblemarks_hl_prejump*
+	既定値: 0
+	非0 にするとカーソルがジャンプする直前にいた、もしくは最後に "m'" か
+	"m`" コマンドが行われた位置をハイライトグループ|VisibleMarksPrejump|で
+	ハイライトする。|''| |``| でこの位置に飛ぶことができる。
+	現在アクティブなウィンドウでのみハイライトされる。
+
+
+g:visiblemarks_hl_lastchanged			*g:visiblemarks_hl_lastchanged*
+	既定値: 0
+	非0 だと最後に変更された場所をハイライトグループ
+	|VisibleMarksLastChanged|でハイライトする。|'.| |`.|でこの位置に飛ぶこ
+	とができる。
+	なぜか比較的新しい Vim ではこれを有効にしてもハイライトされない不具合
+	がある。
+
+
+g:visiblemarks_refresh_viminfo		*g:visiblemarks_refresh_viminfo*
+	既定値: 1
+	非0 だと、|<Plug>(visiblemarks-dm)|で大文字マークを削除したとき、
+	|viminfo|ファイルの古い情報を破棄して上書きする(|:wviminfo!|コマンドを
+	実行する)。大文字マークを削除しても|viminfo|に大文字レジスタの情報が残
+	っていると統合されて復活するからである。
+
+
+g:visiblemarks_show_linemsg			*g:visiblemarks_show_linemsg*
+	既定値: 0
+	|:VisibleMarksShow|や|<Plug>(visiblemarks-info-buf)|などでマーク情報を
+	表示するとき、非0ならマークされている行の内容も表示する。
+
+
+------------------------------------------------------------------------------
+ハイライトグループ				*visiblemarks-highlight-groups*
+
+VisibleMarksLower				*hl-VisibleMarksLower*
+	小文字のマークはこのグループでハイライトされる。
+
+
+VisibleMarksCapital				*hl-VisibleMarksCapital*
+	大文字のマークはこのグループでハイライトされる。
+
+
+VisibleMarksPrejump				*hl-VisibleMarksPrejump*
+	直前のジャンプ位置|''|はこのグループでハイライトされる。
+
+
+VisibleMarksLastChanged				*hl-VisibleMarksLastChanged*
+	最後に更新された場所|'.|はこのグループでハイライトされる。
+
+
+------------------------------------------------------------------------------
+コマンド					*visiblemarks-commands*
+
+:VisibleMarksShow				*:VisibleMarksShow*
+	カレントバッファにセットされているマークを一覧する。
+	|<Plug>(visiblemarks-info-buf)|と同じである。
+
+
+:VisibleMarksToggleHighlight			*:VisibleMarksToggleHighlight*
+	カレントバッファのマークのハイライトのオンオフを切り替える。
+
+
+------------------------------------------------------------------------------
+キーマッピング					*visiblemarks-key-mappings*
+
+<Plug>(visiblemarks-m)				*<Plug>(visiblemarks-m)*
+	有効モード: ノーマル
+	1文字の入力を求められる。入力した文字のマークに現在位置をセットし、マ
+	ークのハイライトを更新する。
+	入力できる文字は a-z A-Z ' ` である。それ以外は無効となる。
+
+	何らかの理由でこのキーマップが効かない場合は、代わりに関数
+	|visiblemarks#setmark()|を使う。 >
+
+		nnoremap <silent> m :<C-u>call visiblemarks#setmark()<CR>
+<
+
+<Plug>(visiblemarks-m,)				*<Plug>(visiblemarks-m,)*
+	有効モード: ノーマル
+	現在地にまだ使われていないローカルマークをセットする。利用可能なマーク
+	は a から z まで順に見て始めに見つかったものである。利用できるものがな
+	ければメッセージを表示する。
+
+
+<Plug>(visiblemarks-m.)				*<Plug>(visiblemarks-m.)*
+	有効モード: ノーマル
+	現在行に既にローカルマークが存在するならそのマークを削除する。
+	そうでなければまだ使われていないローカルマークをセットする。
+
+
+<Plug>(visiblemarks-dm)				*<Plug>(visiblemarks-dm)*
+	有効モード: ノーマル
+	1文字の入力を求められる。入力した文字のマークを削除し、マークのハイラ
+	イトを更新する。
+	入力できる文字は a-z A-Z 0-9 ' ` " % . である。それ以外は無効となる。
+	大文字のマークを削除した場合、|g:visiblemarks_refresh_viminfo|が 0 で
+	なければ|:wviminfo!|コマンドが実行され、viminfoファイルが更新される。
+	% . は特別な意味を持つ。
+		%	バッファ内の全てのマークを削除する
+		.	カーソル行の全てのマークを削除する
+
+
+<Plug>(visiblemarks-info-line)		*<Plug>(visiblemarks-info-line)*
+	有効モード: ノーマル
+	現在行に存在するマークを列の小さい順から並べて表示する。
+
+
+<Plug>(visiblemarks-info-win)		*<Plug>(visiblemarks-info-win)*
+	有効モード: ノーマル
+	現在ウィンドウに見えているマーク(現在ウィンドウの最上行から最下行の範
+	囲内の行内に存在するマーク)を上の行から、列の小さい順に並べて表示する
+	。
+
+
+<Plug>(visiblemarks-info-buf)		*<Plug>(visiblemarks-info-buf)*
+	有効モード: ノーマル
+	現在バッファに存在するマークを、上の行から、列の小さい順に並べて表示す
+	る。
+
+
+<Plug>(visiblemarks-')				*<Plug>(visiblemarks-')*
+<Plug>(visiblemarks-`)				*<Plug>(visiblemarks-`)*
+	有効モード: ノーマル ビジュアル セレクト オペレータ
+	1文字の入力を求められ、入力した文字のマークへジャンプする。マークのハ
+	イライトを更新する。|'|(行指向) |`|(文字指向) と同等。
+
+
+<Plug>(visiblemarks-'')				*<Plug>(visiblemarks-'')*
+<Plug>(visiblemarks-``)				*<Plug>(visiblemarks-``)*
+	有効モード: ノーマル ビジュアル セレクト オペレータ
+	カーソルがジャンプする直前にいた、もしくは最後の "m'" か "m`" コマンド
+	が行われた位置にジャンプする。マークのハイライトを更新する。
+	|''|(行指向) |``|(文字指向) と同等。
+
+
+------------------------------------------------------------------------------
+関数						*visiblemarks-functions*
+
+visiblemarks#refresh()				*visiblemarks#refresh()*
+	マークのハイライトを更新する。|CTRL-L||:redraw!|と違って画面を消去しな
+	い。
+
+
+visiblemarks#setmark([{chr}])			*visiblemarks#setmark()*
+	1文字の入力を待ち、入力された文字のマークをカーソル位置でセットする。
+	|<Plug>(visiblemarks-m)|と同じ効果。引数文字{chr}が与えられると、{chr}
+	のマークをセットする。 a-z A-Z ' ` 以外の文字は無効である。
+
+
+visiblemarks#delmark([{chr}])			*visiblemarks#delmark()*
+	1文字の入力を待ち、入力された文字のマークを削除する。
+	|<Plug>(visiblemarks-dm)|と同じ効果。引数文字{chr}が与えられると、
+	{chr}のマークを削除する。 a-z A-Z 0-9 ' ` " % . 以外の文字は無効である
+	。|g:visiblemarks_refresh_viminfo|が 0 でなければ|:wviminfo!|コマンド
+	が実行され、viminfoファイルが更新される。
+	% . は特別な意味を持つ。
+		%	バッファ内の全てのマークを削除する
+		.	カーソル行の全てのマークを削除する
+
+
+visiblemarks#info_line()			*visiblemarks#info_line()*
+	|<Plug>(visiblemarks-info-line)|の関数版。
+
+
+visiblemarks#info_win()				*visiblemarks#info_win()*
+	|<Plug>(visiblemarks-info-win)|の関数版。
+
+
+visiblemarks#info_buf()				*visiblemarks#info_buf()*
+	|<Plug>(visiblemarks-info-buf)|の関数版。
+
+
+visiblemarks#ljump([{chr}])			*visiblemarks#ljump()*
+	1文字の入力を待ち、入力された文字のマークへ行指向ジャンプする。文字
+	{chr}が与えられると、その文字{chr}のマークへジャンプする。
+	|<Plug>(visiblemarks-')||<Plug>(visiblemarks-'')|の関数版。
+
+
+visiblemarks#cjump([{chr}])			*visiblemarks#cjump()*
+	1文字の入力を待ち、入力された文字のマークへ文字指向ジャンプする。文字
+	{chr}が与えられると、その文字{chr}のマークへジャンプする。
+	|<Plug>(visiblemarks-`)||<Plug>(visiblemarks-``)|の関数版。
+
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:noet:fen:
