@@ -287,9 +287,9 @@ function! s:jump(jmpkey, mark) "{{{
   end
   try
     exe "norm! ". a:jmpkey. a:mark
-  catch /E19:/
+  catch /E19:\|E20:/
     echoh ErrorMsg
-    echom v:exception
+    echom v:exception. ': '. a:mark
     echoh NONE
   endtry
   call visiblemarks#refresh()
